@@ -5,6 +5,10 @@ const loadTests = axios.create({
   timeout: 300000
 });
 
+export function canInsert() {
+  return loadTests.head("load-tests/can-insert");
+}
+
 export function postReviews(count) {
   return loadTests.post(`load-tests/${count}`).then(res => res.data);
 }
