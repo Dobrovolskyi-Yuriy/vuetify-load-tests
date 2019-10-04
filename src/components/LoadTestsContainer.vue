@@ -31,52 +31,51 @@ export default {
       this.loading = true;
 
       this.allTests.push({});
-      const thisTest = this.allTests[this.allTests.length - 1];
+      const test = this.allTests[this.allTests.length - 1];
 
       this.$set(
-        thisTest,
+        test,
         "countOfReviews",
         parseInt(this.formForTests.countOfReviews)
       );
+      this.$set(test, "creationStep", parseInt(this.formForTests.creationStep));
+      this.$set(test, "tests", []);
 
-      this.$set(
-        thisTest,
-        "creationStep",
-        parseInt(this.formForTests.creationStep)
-      );
+      try {
+        const tests = test.tests;
 
-      this.$set(thisTest, "tests", []);
+        let index = 0;
+        let currentStep = test.creationStep;
+        while (currentStep < test.countOfReviews) {
+          tests.push({});
 
-      const tests = thisTest.tests;
+          this.$set(tests[index], "step", index + 1);
 
-      let index = 0;
-      let currentStep = thisTest.creationStep;
-      while (currentStep < thisTest.countOfReviews) {
-        tests.push({});
+          const postResult = await postReviews(currentStep);
+          this.$set(tests[index], "countOfReviews", postResult);
 
-        this.$set(tests[index], "step", index + 1);
+          const resultReviews = await getReviews();
+          this.$set(tests[index], "reviews", resultReviews);
 
-        const postResult = await postReviews(currentStep);
-        this.$set(tests[index], "countOfReviews", postResult);
+          const resultCompanies = await getCompanies();
+          this.$set(tests[index], "companies", resultCompanies);
 
-        const resultReviews = await getReviews();
-        this.$set(tests[index], "reviews", resultReviews);
+          const resultTotal = await getTotal();
+          this.$set(tests[index], "total", resultTotal);
 
-        const resultCompanies = await getCompanies();
-        this.$set(tests[index], "companies", resultCompanies);
+          const resultUsersStatistic = await getUsersStatistic();
+          this.$set(tests[index], "usersStatistic", resultUsersStatistic);
 
-        const resultTotal = await getTotal();
-        this.$set(tests[index], "total", resultTotal);
+          currentStep += test.creationStep;
+          index++;
+        }
 
-        const resultUsersStatistic = await getUsersStatistic();
-        this.$set(tests[index], "usersStatistic", resultUsersStatistic);
-
-        currentStep += thisTest.creationStep;
-        index++;
+        await deleteReviews();
+      } catch (error) {
+        this.$set(test, "error", error);
+      } finally {
+        this.loading = false;
       }
-
-      await deleteReviews();
-      this.loading = false;
     }
   }
 };
